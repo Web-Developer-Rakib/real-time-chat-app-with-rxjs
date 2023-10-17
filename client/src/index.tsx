@@ -2,9 +2,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ChatRoom from "./components/ChatRoom";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-import Chat from "./views/Chat";
+import Conversations from "./views/Conversations";
 import Login from "./views/Login";
 
 const router = createBrowserRouter([
@@ -14,7 +15,13 @@ const router = createBrowserRouter([
   },
   {
     path: "/chat",
-    element: <Chat />,
+    element: <Conversations />,
+    children: [
+      {
+        path: "/chat/room/:username",
+        element: <ChatRoom />,
+      },
+    ],
   },
 ]);
 const root = ReactDOM.createRoot(

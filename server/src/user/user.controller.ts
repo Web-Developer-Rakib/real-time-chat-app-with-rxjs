@@ -39,8 +39,10 @@ export const login = async (req: Request, res: Response) => {
 export const getAllfriends = async (req: Request, res: Response) => {
   try {
     const loggedInUser = req.query.username;
-
-    const allUsers = await User.find({ username: { $ne: loggedInUser } });
+    console.log(loggedInUser);
+    const allUsers = await User.find({
+      username: { $ne: loggedInUser },
+    }).select("-password");
 
     res.status(200).json(allUsers);
   } catch (err) {
