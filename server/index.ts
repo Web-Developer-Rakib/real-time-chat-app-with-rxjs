@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, TypeScript Express Server!");
 });
-routes.map((route) => app.use(`${route.path}`, route.route));
+routes.map((route) => app.use(`/api/v1/${route.path}`, route.route));
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
