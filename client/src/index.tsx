@@ -3,6 +3,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ChatRoom from "./components/ChatRoom";
+import RequireAuth from "./components/RequireAuth";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import Conversations from "./views/Conversations";
@@ -19,7 +20,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/chat/room/:username",
-        element: <ChatRoom />,
+        element: (
+          <RequireAuth>
+            <ChatRoom />
+          </RequireAuth>
+        ),
       },
     ],
   },

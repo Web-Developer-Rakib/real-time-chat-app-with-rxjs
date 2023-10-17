@@ -1,15 +1,32 @@
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ChatBubble from "../components/ChatBubble";
 const ChatRoom = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("usersInfo");
+    navigate("/");
+  };
   return (
     <div>
-      <Stack>
-        <h5>{username}</h5>
-        <h6>Online</h6>
+      <Stack
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <h5>{username}</h5>
+          <p>Online</p>
+        </div>
+        <Button variant="warning" onClick={handleLogout}>
+          Logout
+        </Button>
       </Stack>
       <Stack
         style={{

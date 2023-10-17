@@ -21,8 +21,10 @@ const ChatList = () => {
   const location = useLocation();
   const [friends, setFriends] = useState<IFriend[]>([]);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(
           `${baseURL}/user/get-all-friends/?username=${"rakib"}`
@@ -30,26 +32,33 @@ const ChatList = () => {
         setFriends(response.data);
       } catch (error: any) {
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
     fetchUsers();
   }, []);
   return (
     <ListGroup variant="flush" style={{ display: "flex", gap: 5 }}>
-      {friends.map((friend) => (
-        <Link
-          to={`/chat/room/${friend.username}`}
-          style={
-            location.pathname === `/chat/room/${friend.username}`
-              ? activeLinkStyle
-              : linkStyle
-          }
-        >
-          <ListGroup.Item style={{ cursor: "pointer" }} key={friend._id}>
-            {friend.username}
-          </ListGroup.Item>
-        </Link>
-      ))}
+      {error && error}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        friends.map((friend) => (
+          <Link
+            to={`/chat/room/${friend.username}`}
+            style={
+              location.pathname === `/chat/room/${friend.username}`
+                ? activeLinkStyle
+                : linkStyle
+            }
+          >
+            <ListGroup.Item style={{ cursor: "pointer" }} key={friend._id}>
+              {friend.username}
+            </ListGroup.Item>
+          </Link>
+        ))
+      )}
     </ListGroup>
   );
 };
