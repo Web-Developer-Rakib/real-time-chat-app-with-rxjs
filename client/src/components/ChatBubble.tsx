@@ -1,14 +1,17 @@
+import moment from "moment";
 import Card from "react-bootstrap/Card";
+import { useParams } from "react-router-dom";
 import { IMessage } from "./ChatRoom";
 interface IProps {
   messages: IMessage[];
 }
 const ChatBubble = ({ messages }: IProps) => {
   const loggedinUser = JSON.parse(localStorage.getItem("usersInfo") as any);
+  const { username } = useParams();
   return (
     <>
       {!messages.length ? (
-        <h3>Conversation not started yet</h3>
+        <h4 className="text-center">{`No chat history with ${username}.`}</h4>
       ) : (
         messages.map((message) => (
           <Card
@@ -22,7 +25,15 @@ const ChatBubble = ({ messages }: IProps) => {
             }}
           >
             <Card.Header>
-              {message.sender === loggedinUser.username ? "Me" : message.sender}
+              <b>
+                {message.sender === loggedinUser.username
+                  ? "Me"
+                  : message.sender}
+              </b>{" "}
+              <br />
+              <small>
+                {moment(message.createdAt).subtract(1, "days").calendar()}
+              </small>
             </Card.Header>
             <Card.Body>
               <Card.Text>{message.message}</Card.Text>

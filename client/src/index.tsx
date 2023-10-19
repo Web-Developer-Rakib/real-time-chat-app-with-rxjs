@@ -19,7 +19,7 @@ const router = createBrowserRouter([
     element: <Conversations />,
     children: [
       {
-        path: "/chat/room/:username",
+        path: "/chat/room/:username/:status",
         element: (
           <RequireAuth>
             <ChatRoom />

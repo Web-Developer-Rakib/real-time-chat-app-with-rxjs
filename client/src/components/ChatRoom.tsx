@@ -1,12 +1,11 @@
 import axios from "axios";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate, useParams } from "react-router-dom";
-import io from "socket.io-client";
 import ChatBubble from "../components/ChatBubble";
-import { baseURL } from "../utils/constants";
+import { baseURL, socket } from "../utils/constants";
 export interface IMessage {
   _id: string;
   sender: string;
@@ -15,29 +14,32 @@ export interface IMessage {
   createdAt: string;
   updatedAt: string;
 }
-const socket = io(`${process.env.REACT_APP_SERVER_URL}`);
+
 const ChatRoom = () => {
   const loggedinUser = JSON.parse(localStorage.getItem("usersInfo") as any);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [logoutLoading, setLogOutLoding] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const { username } = useParams();
+  const { username, status } = useParams();
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
-    // Create a function to handle incoming messages and update the state
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [messages]);
+  useEffect(() => {
     const handleChatMessage = (msg: any) => {
       setMessages((prevMsgs) => [...prevMsgs, msg]);
     };
-
-    // Add the event listener when the component mounts
     socket.on("chat message", handleChatMessage);
-
-    // Clean up the event listener when the component unmounts
     return () => {
       socket.off("chat message", handleChatMessage);
     };
-  }, [username]);
+  }, []);
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -53,6 +55,7 @@ const ChatRoom = () => {
       }
     };
     fetchMessages();
+    setMessage("");
   }, [username]);
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -66,16 +69,23 @@ const ChatRoom = () => {
       message,
     };
     try {
-      // Send the message to the server using Axios (or your preferred API client)
       await axios.post(`${baseURL}/chat/send`, newMessage);
       setMessage("");
     } catch (error) {
       setError("Failed to send the message.");
     }
   };
-  const handleLogout = () => {
-    localStorage.removeItem("usersInfo");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      setLogOutLoding(true);
+      await axios.put(`${baseURL}/user/logout/${loggedinUser.username}`);
+      localStorage.removeItem("usersInfo");
+      navigate("/");
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLogOutLoding(false);
+    }
   };
   return (
     <div>
@@ -89,21 +99,35 @@ const ChatRoom = () => {
       >
         <div>
           <h5>{username}</h5>
-          <p>Online</p>
+          <p
+            className={status === "Online" ? "text-success" : "text-secondary"}
+          >
+            {status}
+          </p>
         </div>
-        <Button variant="warning" onClick={handleLogout}>
+        <Button
+          disabled={logoutLoading}
+          variant="warning"
+          onClick={handleLogout}
+        >
           Logout
         </Button>
       </Stack>
       <div
         style={{
-          height: 470,
+          height: 400,
           overflowY: "auto",
           width: "100%",
         }}
+        ref={containerRef}
       >
-        <ChatBubble messages={messages} />
-        <div style={{ marginTop: 60 }}></div>
+        {error ? (
+          <h4>{error}</h4>
+        ) : loading ? (
+          <p>Loading...</p>
+        ) : (
+          <ChatBubble messages={messages} />
+        )}
       </div>
       <Stack
         style={{
@@ -124,6 +148,7 @@ const ChatRoom = () => {
         >
           <Form.Control
             type="text"
+            value={message}
             placeholder="Type your message..."
             onChange={(e) => setMessage(e.target.value)}
           />

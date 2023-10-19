@@ -1,27 +1,46 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
 import { Link, useLocation } from "react-router-dom";
-import { baseURL } from "../utils/constants";
+import { baseURL, socket } from "../utils/constants";
 interface IFriend {
   _id: string;
   username: string;
+  status: string;
 }
 const ChatList = () => {
   const linkStyle = {
-    textDecoration: "none", // Remove underline
-    color: "inherit", // Inherit the default link color
+    textDecoration: "none",
+    color: "inherit",
   };
 
   const activeLinkStyle = {
     fontWeight: "bold",
-    textDecoration: "none", // Remove underline
-    color: "inherit", // Make the active link bold
+    textDecoration: "none",
+    color: "inherit",
   };
   const location = useLocation();
   const [friends, setFriends] = useState<IFriend[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  useEffect(() => {
+    const handleOnlineStatus = (user: any) => {
+      const userId = user.id;
+      const updatedFriends = friends.map((friend) => {
+        if (friend._id === userId) {
+          return { ...friend, status: user.status };
+        }
+        return friend;
+      });
+      setFriends(updatedFriends);
+    };
+    socket.on("status", handleOnlineStatus);
+    return () => {
+      socket.off("status", handleOnlineStatus);
+    };
+  }, [friends]);
+
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
@@ -49,15 +68,19 @@ const ChatList = () => {
       ) : (
         friends.map((friend) => (
           <Link
-            to={`/chat/room/${friend.username}`}
+            to={`/chat/room/${friend.username}/${friend.status}`}
             style={
-              location.pathname === `/chat/room/${friend.username}`
+              location.pathname ===
+              `/chat/room/${friend.username}/${friend.status}`
                 ? activeLinkStyle
                 : linkStyle
             }
           >
             <ListGroup.Item style={{ cursor: "pointer" }} key={friend._id}>
-              {friend.username}
+              {friend.username}{" "}
+              <Badge bg={friend.status === "Online" ? "success" : "secondary"}>
+                {friend.status}
+              </Badge>
             </ListGroup.Item>
           </Link>
         ))

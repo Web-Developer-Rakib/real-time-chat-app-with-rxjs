@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { io } from "../..";
 import User from "./user.model";
 
 export const register = async (req: Request, res: Response) => {
@@ -21,16 +22,40 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username, password });
+    const user = await User.findOneAndUpdate(
+      { username, password },
+      { status: "Online" }
+    );
 
     if (user) {
       const usersInfo = {
         username: user.username,
         id: user._id,
+        status: "Online",
       };
+      io.emit("status", usersInfo);
       res.status(200).json({ message: "Login successful", usersInfo });
     } else {
       res.status(401).json({ message: "Invalid username or password" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const logout = async (req: Request, res: Response) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOneAndUpdate(
+      { username },
+      { status: "Offline" }
+    );
+    if (user) {
+      const usersInfo = {
+        id: user._id,
+        status: "Offline",
+      };
+      io.emit("status", usersInfo);
+      res.status(200).json({ message: "Logout successful", usersInfo });
     }
   } catch (err) {
     res.status(500).json({ message: "Internal server error" });
@@ -42,7 +67,6 @@ export const getAllfriends = async (req: Request, res: Response) => {
     const allUsers = await User.find({
       username: { $ne: loggedInUser },
     }).select("-password");
-
     res.status(200).json(allUsers);
   } catch (err) {
     res.status(500).json({ message: "Internal server error" });
