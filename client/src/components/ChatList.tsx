@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
 import { Link, useLocation } from "react-router-dom";
+import useSingleUser from "../hooks/useSingleUser";
 import { baseURL, socket } from "../utils/constants";
 interface IFriend {
   _id: string;
@@ -21,12 +22,14 @@ const ChatList = () => {
     color: "inherit",
   };
   const location = useLocation();
+  const { setUser } = useSingleUser();
   const [friends, setFriends] = useState<IFriend[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   useEffect(() => {
     const handleOnlineStatus = (user: any) => {
       const userId = user.id;
+      setUser((prev: any) => ({ ...prev, status: user.status }));
       const updatedFriends = friends.map((friend) => {
         if (friend._id === userId) {
           return { ...friend, status: user.status };
@@ -68,10 +71,9 @@ const ChatList = () => {
       ) : (
         friends.map((friend) => (
           <Link
-            to={`/chat/room/${friend.username}/${friend.status}`}
+            to={`/chat/room/${friend.username}`}
             style={
-              location.pathname ===
-              `/chat/room/${friend.username}/${friend.status}`
+              location.pathname === `/chat/room/${friend.username}`
                 ? activeLinkStyle
                 : linkStyle
             }

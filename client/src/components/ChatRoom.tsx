@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatBubble from "../components/ChatBubble";
+import useSingleUser from "../hooks/useSingleUser";
 import { baseURL, socket } from "../utils/constants";
 export interface IMessage {
   _id: string;
@@ -22,10 +23,29 @@ const ChatRoom = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [logoutLoading, setLogOutLoding] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const { username, status } = useParams();
+  const { username } = useParams();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const {
+    loading: userLoading,
+    fetchSingleUser,
+    user,
+    setUser,
+  } = useSingleUser();
+
+  useEffect(() => {
+    fetchSingleUser(username as string);
+  }, [username]);
+  useEffect(() => {
+    const handleOnlineStatus = (user: any) => {
+      setUser((prev: any) => ({ ...prev, status: user.status }));
+    };
+    socket.on("status", handleOnlineStatus);
+    return () => {
+      socket.off("status", handleOnlineStatus);
+    };
+  }, [user]);
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -97,14 +117,20 @@ const ChatRoom = () => {
           alignItems: "center",
         }}
       >
-        <div>
-          <h5>{username}</h5>
-          <p
-            className={status === "Online" ? "text-success" : "text-secondary"}
-          >
-            {status}
-          </p>
-        </div>
+        {userLoading ? (
+          <p>Loading...</p>
+        ) : (
+          <div>
+            <h5>{user.username}</h5>
+            <p
+              className={
+                user.status === "Online" ? "text-success" : "text-secondary"
+              }
+            >
+              {user.status}
+            </p>
+          </div>
+        )}
         <Button
           disabled={logoutLoading}
           variant="warning"
