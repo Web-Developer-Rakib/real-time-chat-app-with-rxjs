@@ -1,18 +1,36 @@
 import Card from "react-bootstrap/Card";
-const ChatBubble = () => {
+import { IMessage } from "./ChatRoom";
+interface IProps {
+  messages: IMessage[];
+}
+const ChatBubble = ({ messages }: IProps) => {
+  const loggedinUser = JSON.parse(localStorage.getItem("usersInfo") as any);
   return (
-    <Card
-      border="primary"
-      style={{ width: "36rem", float: "left", marginBottom: 10 }}
-    >
-      <Card.Header>Jhon doe</Card.Header>
-      <Card.Body>
-        <Card.Text>
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </Card.Text>
-      </Card.Body>
-    </Card>
+    <>
+      {!messages.length ? (
+        <h3>Conversation not started yet</h3>
+      ) : (
+        messages.map((message) => (
+          <Card
+            key={message._id}
+            border="primary"
+            style={{
+              width: "36rem",
+              float:
+                message.sender === loggedinUser.username ? "right" : "left",
+              marginBottom: 10,
+            }}
+          >
+            <Card.Header>
+              {message.sender === loggedinUser.username ? "Me" : message.sender}
+            </Card.Header>
+            <Card.Body>
+              <Card.Text>{message.message}</Card.Text>
+            </Card.Body>
+          </Card>
+        ))
+      )}
+    </>
   );
 };
 

@@ -39,7 +39,6 @@ export const login = async (req: Request, res: Response) => {
 export const getAllfriends = async (req: Request, res: Response) => {
   try {
     const loggedInUser = req.query.username;
-    console.log(loggedInUser);
     const allUsers = await User.find({
       username: { $ne: loggedInUser },
     }).select("-password");

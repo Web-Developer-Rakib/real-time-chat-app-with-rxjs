@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { io } from "../..";
 import Chat from "./chat.model";
 
 export const sendMessage = async (req: Request, res: Response) => {
@@ -6,6 +7,9 @@ export const sendMessage = async (req: Request, res: Response) => {
     const { sender, receiver, message } = req.body;
     const newChat = new Chat({ sender, receiver, message });
     const savedChat = await newChat.save();
+    // Emit the message to connected clients using Socket.io
+    io.emit("chat message", savedChat);
+
     res.json(savedChat);
   } catch (error) {
     res.status(500).json({ error: "Failed to send the message." });

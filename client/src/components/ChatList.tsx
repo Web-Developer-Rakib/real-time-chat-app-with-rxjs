@@ -26,8 +26,11 @@ const ChatList = () => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
+        const loggedinUser = JSON.parse(
+          localStorage.getItem("usersInfo") as any
+        );
         const response = await axios.get(
-          `${baseURL}/user/get-all-friends/?username=${"rakib"}`
+          `${baseURL}/user/get-all-friends/?username=${loggedinUser.username}`
         );
         setFriends(response.data);
       } catch (error: any) {
