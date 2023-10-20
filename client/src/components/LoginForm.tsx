@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ const LoginForm = () => {
     const username = e.target.elements.username.value;
     const password = e.target.elements.password.value;
     setLoading(true);
+    setError("");
     try {
       const response = await axios.post(`${baseURL}/user/login`, {
         username,
@@ -26,7 +28,8 @@ const LoginForm = () => {
       );
       navigate("/chat");
     } catch (error: any) {
-      setError(error.message);
+      setError(error.response.data.message);
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -44,6 +47,11 @@ const LoginForm = () => {
       <Button variant="primary" disabled={loading} type="submit">
         Login
       </Button>
+      {error ? (
+        <Alert style={{ marginTop: 10 }} variant={"danger"}>
+          {error}
+        </Alert>
+      ) : null}
     </Form>
   );
 };
