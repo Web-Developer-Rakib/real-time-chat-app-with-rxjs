@@ -31,9 +31,7 @@ const ChatBubble = ({ messages }: IProps) => {
                   : message.sender}
               </b>{" "}
               <br />
-              <small>
-                {moment(message.createdAt).subtract(1, "days").calendar()}
-              </small>
+              <small>{moment(message.createdAt).calendar()}</small>
             </Card.Header>
             <Card.Body>
               <Card.Text>{message.message}</Card.Text>
