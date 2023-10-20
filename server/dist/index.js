@@ -37,8 +37,21 @@ const io = new socket_io_1.Server(server, {
     },
 });
 exports.io = io;
+const connectedUsers = {};
 io.on("connection", (socket) => {
     console.log("User connected");
+    socket.on("userLoggedIn", (username) => {
+        connectedUsers[username] = socket;
+    });
+    function findUserSocketByUsername(username) {
+        return connectedUsers[username];
+    }
+    socket.on("typing", (data) => {
+        const targetUserSocket = findUserSocketByUsername(data.receiver);
+        if (targetUserSocket) {
+            targetUserSocket.emit("typing", data);
+        }
+    });
     socket.on("disconnect", () => {
         console.log("User disconnected");
     });
