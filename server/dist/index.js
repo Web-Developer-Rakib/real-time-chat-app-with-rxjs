@@ -3,14 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.messages$ = exports.io = void 0;
+exports.io = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const rxjs_1 = require("rxjs");
 const socket_io_1 = require("socket.io");
 const routes_1 = __importDefault(require("./src/routes"));
 dotenv_1.default.config();
@@ -31,8 +30,6 @@ app.get("/", (req, res) => {
     res.send("Hello, TypeScript Express Server!");
 });
 // Websocket connection
-const messages$ = new rxjs_1.Subject();
-exports.messages$ = messages$;
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: "*",
@@ -42,12 +39,11 @@ const io = new socket_io_1.Server(server, {
 exports.io = io;
 io.on("connection", (socket) => {
     console.log("User connected");
-    // You can add more Socket.io event handling here as needed
     socket.on("disconnect", () => {
         console.log("User disconnected");
     });
 });
 routes_1.default.map((route) => app.use(`/api/v1/${route.path}`, route.route));
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });

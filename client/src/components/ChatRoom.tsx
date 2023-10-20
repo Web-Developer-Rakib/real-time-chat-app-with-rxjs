@@ -21,6 +21,8 @@ const ChatRoom = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [sender, setSender] = useState<string>("");
+  const [typing, setTyping] = useState<string>("");
   const [logoutLoading, setLogOutLoding] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const { username } = useParams();
@@ -55,11 +57,24 @@ const ChatRoom = () => {
     const handleChatMessage = (msg: any) => {
       setMessages((prevMsgs) => [...prevMsgs, msg]);
     };
-    socket.on("chat message", handleChatMessage);
+    socket.on("message", handleChatMessage);
     return () => {
-      socket.off("chat message", handleChatMessage);
+      socket.off("message", handleChatMessage);
     };
   }, []);
+  useEffect(() => {
+    const handleTypingStatus = (data: any) => {
+      setTyping(data.typing);
+      setSender(data.sender);
+    };
+    socket.on("typing", handleTypingStatus);
+    return () => {
+      socket.off("typing", handleTypingStatus);
+    };
+  }, [message]);
+  setTimeout(() => {
+    setTyping("");
+  }, 2000);
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -77,6 +92,15 @@ const ChatRoom = () => {
     fetchMessages();
     setMessage("");
   }, [username]);
+
+  const handleChangeText = async (value: string) => {
+    setMessage(value);
+    socket.emit("typing", {
+      typing: "Typing...",
+      sender: loggedinUser.username,
+      receiver: username,
+    });
+  };
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (message.trim() === "") {
@@ -107,6 +131,7 @@ const ChatRoom = () => {
       setLogOutLoding(false);
     }
   };
+  const chattingWith = localStorage.getItem("chatingWith");
   return (
     <div>
       <Stack
@@ -149,9 +174,7 @@ const ChatRoom = () => {
       >
         {error ? (
           <h4>{error}</h4>
-        ) : loading ? (
-          <p>Loading...</p>
-        ) : (
+        ) : loading ? null : (
           <ChatBubble messages={messages} />
         )}
       </div>
@@ -165,6 +188,7 @@ const ChatRoom = () => {
           margin: "auto",
         }}
       >
+        {chattingWith === sender && <b>{typing}</b>}
         <Form
           style={{
             display: "flex",
@@ -176,7 +200,7 @@ const ChatRoom = () => {
             type="text"
             value={message}
             placeholder="Type your message..."
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => handleChangeText(e.target.value)}
           />
           <Button variant="success" type="submit">
             Send

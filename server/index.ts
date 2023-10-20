@@ -32,11 +32,22 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+const connectedUsers: any = {};
 io.on("connection", (socket) => {
   console.log("User connected");
 
-  // You can add more Socket.io event handling here as needed
-
+  socket.on("userLoggedIn", (username) => {
+    connectedUsers[username] = socket;
+  });
+  function findUserSocketByUsername(username: string) {
+    return connectedUsers[username];
+  }
+  socket.on("typing", (data) => {
+    const targetUserSocket = findUserSocketByUsername(data.receiver);
+    if (targetUserSocket) {
+      targetUserSocket.emit("typing", data);
+    }
+  });
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });

@@ -35,6 +35,11 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    status: {
+        type: String,
+        required: true,
+        default: "Offline",
+    },
 });
 // Create the Mongoose model
 const User = mongoose_1.default.model("User", userSchema);

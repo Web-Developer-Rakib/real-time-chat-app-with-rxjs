@@ -63,6 +63,9 @@ const ChatList = () => {
     };
     fetchUsers();
   }, []);
+  const handleSetFriend = (friendsName: string) => {
+    localStorage.setItem("chatingWith", friendsName);
+  };
   return (
     <ListGroup variant="flush" style={{ display: "flex", gap: 5 }}>
       {error && error}
@@ -72,6 +75,7 @@ const ChatList = () => {
         friends.map((friend) => (
           <Link
             to={`/chat/room/${friend.username}`}
+            onClick={() => handleSetFriend(friend.username)}
             style={
               location.pathname === `/chat/room/${friend.username}`
                 ? activeLinkStyle

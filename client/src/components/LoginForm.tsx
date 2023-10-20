@@ -3,7 +3,7 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useNavigate } from "react-router-dom";
-import { baseURL } from "../utils/constants";
+import { baseURL, socket } from "../utils/constants";
 
 const LoginForm = () => {
   const [error, setError] = useState<string>("");
@@ -19,6 +19,7 @@ const LoginForm = () => {
         username,
         password,
       });
+      socket.emit("userLoggedIn", username);
       localStorage.setItem(
         "usersInfo",
         JSON.stringify(response.data.usersInfo)

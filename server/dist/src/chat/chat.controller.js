@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMessages = exports.sendMessage = void 0;
+exports.checkTypingStatus = exports.getMessages = exports.sendMessage = void 0;
 const __1 = require("../..");
 const chat_model_1 = __importDefault(require("./chat.model"));
 const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -22,8 +22,6 @@ const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const savedChat = yield newChat.save();
         // Emit the message to connected clients using Socket.io
         __1.io.emit("chat message", savedChat);
-        // Push the message to the RxJS messages$ Observable
-        __1.messages$.next(savedChat);
         res.json(savedChat);
     }
     catch (error) {
@@ -47,3 +45,14 @@ const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getMessages = getMessages;
+const checkTypingStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { sender, receiver } = req.query;
+        __1.io.emit("typing", "Typing");
+        res.send("Typing");
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to retrieve messages." });
+    }
+});
+exports.checkTypingStatus = checkTypingStatus;
